@@ -1,0 +1,16 @@
+{
+  "name": "@flxbl-io/sfops-migrator",
+  "version": "1.0.0",
+  "description": "Upgrade to revised issueops",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "flxbl-io",
+  "license": "BSL",
+  "dependencies": {
+    "octokit": "^4.0.2",
+    "@octokit/rest": "^20.1.1"
+  }
+}
