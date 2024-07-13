@@ -6,6 +6,7 @@ if (!githubToken || !owner || !repo) {
   process.exit(1);
 }
 
+
 async function getIssueDetails(octokit, owner, repo, issueNumber) {
   const { data: issue } = await octokit.rest.issues.get({
     owner,
@@ -22,7 +23,7 @@ async function getIssueDetails(octokit, owner, repo, issueNumber) {
   const daysToKeepMatch = issue.body.match(
     /### How long should the sandbox be kept\?\n+(.*)$/m
   );
-  const daysToKeep = daysToKeepMatch ? daysToKeepMatch[1].trim() : "";
+  const daysToKeep = daysToKeepMatch ? daysToKeepMatch[1].trim() : "15"; // Set default to "15"
 
   const userEmailMatch = issue.body.match(
     /### Email of the user to which this sandbox should be assigned\n+(.*)$/m
