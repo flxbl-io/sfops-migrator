@@ -1,6 +1,6 @@
 {
   "name": "@flxbl-io/sfops-migrator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Upgrade to revised issueops",
   "main": "index.js",
   "access": "public",
