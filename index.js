@@ -6,7 +6,6 @@ if (!githubToken || !owner || !repo) {
   process.exit(1);
 }
 
-
 async function getIssueDetails(octokit, owner, repo, issueNumber) {
   const { data: issue } = await octokit.rest.issues.get({
     owner,
@@ -33,6 +32,15 @@ async function getIssueDetails(octokit, owner, repo, issueNumber) {
   return { sourceSandbox, daysToKeep, userEmail };
 }
 
+async function deleteRepositoryVariable(octokit, repoOwner, repoName, name) {
+  await octokit.request('DELETE /repos/{owner}/{repo}/actions/variables/{name}', {
+      owner: repoOwner,
+      repo: repoName,
+      name: name,
+      headers: { 'X-GitHub-Api-Version': '2022-11-28' },
+  });
+}
+
 async function getRepoVariables(octokit, owner, repo) {
   const variables = await octokit.paginate(
     "GET /repos/{owner}/{repo}/actions/variables",
@@ -45,6 +53,26 @@ async function getRepoVariables(octokit, owner, repo) {
   );
 
   return variables;
+}
+
+async function updateIssueWithSpecialString(octokit, owner, repo, issueNumber, sourceSandbox, daysToKeep, userEmail) {
+  const { data: issue } = await octokit.rest.issues.get({
+    owner,
+    repo,
+    issue_number: issueNumber,
+  });
+
+  const specialString = `<!-- {"id":"request-dev-sandbox","sourceSB":"${sourceSandbox}","daysToKeep":"${daysToKeep}","email":"${userEmail}"} -->`;
+  const updatedBody = `${issue.body}\n\n${specialString}`;
+
+  await octokit.rest.issues.update({
+    owner,
+    repo,
+    issue_number: issueNumber,
+    body: updatedBody,
+  });
+
+  console.log(`✏️ Updated issue #${issueNumber} with special string`);
 }
 
 function createNewVariable(
@@ -111,6 +139,9 @@ async function upgradeVariables() {
 
       console.log(`✅ Fetched issue details for issue #${oldVariable.issueNumber}`);
 
+      // Update the issue with the special string
+      await updateIssueWithSpecialString(octokit, owner, repo, oldVariable.issueNumber, sourceSandbox, daysToKeep, userEmail);
+
       const newVariable = createNewVariable(
         owner,
         repo,
@@ -145,6 +176,13 @@ async function upgradeVariables() {
           console.log(
             `✨ Created new variable: ${upgradedVariableName}`
           );
+          
+          // Delete the old variable
+          await deleteRepositoryVariable(octokit, owner, repo, variable.name);
+          
+          console.log(
+            `🗑️ Deleted old variable: ${variable.name}`
+          );
         } else {
           throw error;
         }
@@ -156,4 +194,6 @@ async function upgradeVariables() {
   console.log(`🎉 SFOPS Migration completed successfully!`);
 }
 
-upgradeVariables();
+(async () => {
+  await upgradeVariables();
+})();
