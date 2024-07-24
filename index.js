@@ -1,10 +1,6 @@
-const [, ,owner, repo, githubToken,] = process.argv;
-if (!githubToken || !owner || !repo) {
-  console.error(
-    "Please provide a GitHub access token, owner, and repo as command-line arguments."
-  );
-  process.exit(1);
-}
+#!/usr/bin/env node
+
+const { Octokit } = require("octokit");
 
 async function getIssueDetails(octokit, owner, repo, issueNumber) {
   const { data: issue } = await octokit.rest.issues.get({
@@ -34,10 +30,10 @@ async function getIssueDetails(octokit, owner, repo, issueNumber) {
 
 async function deleteRepositoryVariable(octokit, repoOwner, repoName, name) {
   await octokit.request('DELETE /repos/{owner}/{repo}/actions/variables/{name}', {
-      owner: repoOwner,
-      repo: repoName,
-      name: name,
-      headers: { 'X-GitHub-Api-Version': '2022-11-28' },
+    owner: repoOwner,
+    repo: repoName,
+    name: name,
+    headers: { 'X-GitHub-Api-Version': '2022-11-28' },
   });
 }
 
@@ -114,8 +110,7 @@ function createNewVariable(
   return newVariable;
 }
 
-async function upgradeVariables() {
-  const { Octokit } = await import("octokit");
+async function upgradeVariables(owner, repo, githubToken) {
   const octokit = new Octokit({
     auth: githubToken,
   });
@@ -194,6 +189,21 @@ async function upgradeVariables() {
   console.log(`🎉 SFOPS Migration completed successfully!`);
 }
 
-(async () => {
-  await upgradeVariables();
-})();
+async function main() {
+  const [, , owner, repo, githubToken] = process.argv;
+  if (!githubToken || !owner || !repo) {
+    console.error(
+      "Please provide a GitHub access token, owner, and repo as command-line arguments."
+    );
+    process.exit(1);
+  }
+
+  try {
+    await upgradeVariables(owner, repo, githubToken);
+  } catch (error) {
+    console.error("An error occurred:", error);
+    process.exit(1);
+  }
+}
+
+main();

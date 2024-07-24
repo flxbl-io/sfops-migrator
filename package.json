@@ -4,6 +4,9 @@
   "description": "Upgrade to revised issueops",
   "main": "index.js",
   "access": "public",
+  "bin": {
+    "sfops-migrator": "./index.js"
+  },
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
