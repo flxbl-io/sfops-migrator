@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 
-const { Octokit } = require("octokit");
+const [, , owner, repo, githubToken] = process.argv;
+if (!githubToken || !owner || !repo) {
+  console.error(
+    "Please provide a GitHub access token, owner, and repo as command-line arguments."
+  );
+  process.exit(1);
+}
 
 async function getIssueDetails(octokit, owner, repo, issueNumber) {
   const { data: issue } = await octokit.rest.issues.get({
@@ -110,7 +116,8 @@ function createNewVariable(
   return newVariable;
 }
 
-async function upgradeVariables(owner, repo, githubToken) {
+async function upgradeVariables() {
+  const { Octokit } = await import("octokit");
   const octokit = new Octokit({
     auth: githubToken,
   });
@@ -189,21 +196,11 @@ async function upgradeVariables(owner, repo, githubToken) {
   console.log(`🎉 SFOPS Migration completed successfully!`);
 }
 
-async function main() {
-  const [, , owner, repo, githubToken] = process.argv;
-  if (!githubToken || !owner || !repo) {
-    console.error(
-      "Please provide a GitHub access token, owner, and repo as command-line arguments."
-    );
-    process.exit(1);
-  }
-
+(async () => {
   try {
-    await upgradeVariables(owner, repo, githubToken);
+    await upgradeVariables();
   } catch (error) {
     console.error("An error occurred:", error);
     process.exit(1);
   }
-}
-
-main();
+})();
